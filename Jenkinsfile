@@ -1,33 +1,44 @@
 pipeline {
     agent any
     environment {
-    DOCKER_HUB_CREDENTIALS = credentials('doc-credentials')
+    DOCKER_HUB_CREDENTIALS = credentials('dockerhubcred')
     }
 
     stages {
        stage('Initialization') {
             steps {
-                git 'https://github.com/nikhilkeshave24/deployment_demo.git'
+                git credentialsId: '599ac700-c0e5-447a-81df-effa47c4a00d', url: 'https://github.com/Rijas11/deployment_demo.git', branch: 'Dev'
             }
         }
         stage('Build') {
             steps {
-                sh 'mvn clean install'
+                sh 'mvn -f deployment_application/pom.xml clean install'
             }
         }
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t demo/deployment_application:1.0.0 .'
+                sh 'sudo docker build . -t rijas1508/myapp:$BUILD_NUMBER'
+            }
+        }
+	stage('Run Image') {
+            steps {
+                sh 'sudo docker run -p 9090:8080 rijas1508/myapp:$BUILD_NUMBER'
+		echo 'Docker Deployment done..'
             }
         }
         stage('Docker Login') {
-            steps {
-                sh 'docker login -u Rijas1508 --password '
+           // steps{                       	
+	//			sh 'echo $DOCKERHUB_CREDENTIALS_PSW | sudo docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'                		
+	//			echo 'Login Completed'      
+		//	} 
+		 steps {
+                echo 'Docker Login..'
             }
         }
         stage('Docker Push') {
             steps {
-                sh 'docker push demo/deployment_application:1.0.0'
+              //  sh 'sudo docker push demo/deployment_application:1.0.0'
+		    echo 'Docker Push..'
             }
         }
         stage('Test') {
